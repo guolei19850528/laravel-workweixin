@@ -211,7 +211,7 @@ class Webhook
     public function sendFile(
         string           $mediaId = '',
         array|Collection $options = [],
-        string           $url = '/send?key={key}'
+        string           $url = '/cgi-bin/webhook/send?key={key}'
     ): bool
     {
         $data = \collect([
@@ -234,7 +234,7 @@ class Webhook
     public function sendVoice(
         string           $mediaId = '',
         array|Collection $options = [],
-        string           $url = '/send?key={key}'
+        string           $url = '/cgi-bin/webhook/send?key={key}'
     ): bool
     {
         $data = \collect([
@@ -259,7 +259,7 @@ class Webhook
         array|Collection $attach = [],
         string           $type = 'file',
         array|Collection $options = [],
-        string           $url = '/upload_media?key={key}&type={type}'
+        string           $url = '/cgi-bin/webhook/upload_media?key={key}&type={type}'
     ): string|null
     {
         $response = Http::baseUrl($this->getBaseUrl())

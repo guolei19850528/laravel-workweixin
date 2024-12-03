@@ -6,7 +6,7 @@
  * Git:https://github.com/guolei19850528/laravel-workwx
  */
 
-namespace Guolei19850528\Laravel\Qywx\Library\Server;
+namespace Guolei19850528\Laravel\Workwx;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
