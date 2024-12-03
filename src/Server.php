@@ -161,7 +161,7 @@ class Server
     /**
      * 获取企业微信接口IP段
      * @see https://developer.work.weixin.qq.com/document/path/92520
-     * @param array|Collection $options
+     * @param array|Collection|null $options
      * @param string $url
      * @return array|null
      */
@@ -220,8 +220,8 @@ class Server
     /**
      * 发送应用消息
      * @see https://developer.work.weixin.qq.com/document/path/90235
-     * @param array|Collection $data Post Data
-     * @param array|Collection $options Replace the specified options on the request.
+     * @param array|Collection|null $data Post Data
+     * @param array|Collection|null $options Replace the specified options on the request.
      * @param string $url
      * @return bool
      */
@@ -251,9 +251,9 @@ class Server
     /**
      * 上传临时素材
      * @see https://developer.work.weixin.qq.com/document/path/90253
-     * @param array|Collection $attach Attach a file to the request.
+     * @param array|Collection|null $attach Attach a file to the request.
      * @param string $type 媒体文件类型，分别有图片（image）、语音（voice）、视频（video），普通文件（file）
-     * @param array|Collection $options Replace the specified options on the request.
+     * @param array|Collection|null $options Replace the specified options on the request.
      * @param string $url
      * @return string|null
      */
@@ -286,8 +286,8 @@ class Server
     /**
      * 上传图片
      * @see https://developer.work.weixin.qq.com/document/path/90256
-     * @param array|Collection $attach Attach a file to the request.
-     * @param array|Collection $options Replace the specified options on the request.
+     * @param array|Collection|null $attach Attach a file to the request.
+     * @param array|Collection|null $options Replace the specified options on the request.
      * @param string $url
      * @return string|null
      */
