@@ -2,8 +2,6 @@
 
 A Work Weixin Laravel Library By Guolei
 
-
-
 # Installation
 
 ```shell
