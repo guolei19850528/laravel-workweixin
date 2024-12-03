@@ -94,12 +94,12 @@ class Webhook
     }
 
     /**
-     * @param array|Collection $mentionedList
+     * @param array|Collection|null $mentionedList
      * @return $this
      */
-    public function setMentionedList(array|Collection $mentionedList = []): Webhook
+    public function setMentionedList(array|Collection|null $mentionedList = []): Webhook
     {
-        $this->mentionedList = $mentionedList;
+        $this->mentionedList = \collect($mentionedList);
         return $this;
     }
 
@@ -111,12 +111,12 @@ class Webhook
     }
 
     /**
-     * @param array|Collection $mentionedMobileList
+     * @param array|Collection|null $mentionedMobileList
      * @return $this
      */
-    public function setMentionedMobileList(array|Collection $mentionedMobileList = []): Webhook
+    public function setMentionedMobileList(array|Collection|null $mentionedMobileList = []): Webhook
     {
-        $this->mentionedMobileList = $mentionedMobileList;
+        $this->mentionedMobileList = \collect($mentionedMobileList);
         return $this;
     }
 
@@ -124,44 +124,49 @@ class Webhook
     /**
      * Webhook Class Construct Function
      * @param string $key Key
-     * @param array|Collection $mentionedList userid的列表，提醒群中的指定成员(@某个成员)，@all表示提醒所有人，如果开发者获取不到userid，可以使用mentioned_mobile_list
-     * @param array|Collection $mentionedMobileList 手机号列表，提醒手机号对应的群成员(@某个成员)，@all表示提醒所有人
+     * @param array|Collection|null $mentionedList userid的列表，提醒群中的指定成员(@某个成员)，@all表示提醒所有人，如果开发者获取不到userid，可以使用mentioned_mobile_list
+     * @param array|Collection|null $mentionedMobileList 手机号列表，提醒手机号对应的群成员(@某个成员)，@all表示提醒所有人
      * @param string $baseUrl Base Url
      */
     public function __construct(
-        string           $key = '',
-        array|Collection $mentionedList = [],
-        array|Collection $mentionedMobileList = [],
-        string           $baseUrl = 'https://qyapi.weixin.qq.com/'
+        string                $key = '',
+        array|Collection|null $mentionedList = [],
+        array|Collection|null $mentionedMobileList = [],
+        string                $baseUrl = 'https://qyapi.weixin.qq.com/'
     )
     {
         $this->setKey($key);
-        $this->setMentionedList($mentionedList);
-        $this->setMentionedMobileList($mentionedMobileList);
+        $this->setMentionedList(\collect($mentionedList));
+        $this->setMentionedMobileList(\collect($mentionedMobileList));
         $this->setBaseUrl($baseUrl);
     }
 
     /**
      * Send
-     * @param array|Collection $data Post Data
-     * @param array|Collection $options Replace the specified options on the request
+     * @param array|Collection|null $data Post Data
+     * @param array|Collection|null $options Replace the specified options on the request
+     * @param \Closure|null $closure
      * @param string $url
      * @return bool
      */
     public function send(
-        array|Collection $data = [],
-        array|Collection $options = [],
-        string           $url = '/cgi-bin/webhook/send?key={key}'
+        array|Collection|null $data = [],
+        array|Collection|null $options = [],
+        \Closure              $closure = null,
+        string                $url = '/cgi-bin/webhook/send?key={key}'
     ): bool
     {
         $response = Http::baseUrl($this->getBaseUrl())
             ->asJson()
-            ->withOptions($options)
+            ->withOptions(\collect($options)->toArray())
             ->withUrlParameters(
                 [
                     'key' => $this->key
                 ]
-            )->post($url, $data);
+            )->post($url, \collect($data)->toArray());
+        if ($closure) {
+            return call_user_func($closure, $response);
+        }
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
@@ -175,42 +180,46 @@ class Webhook
      * Send Text
      * @see https://developer.work.weixin.qq.com/document/path/91770#%E6%96%87%E6%9C%AC%E7%B1%BB%E5%9E%8B
      * @param string $content 文本内容，最长不超过2048个字节，必须是utf8编码
-     * @param array|Collection $mentionedList userid的列表，提醒群中的指定成员(@某个成员)，@all表示提醒所有人，如果开发者获取不到userid，可以使用mentioned_mobile_list
-     * @param array|Collection $mentionedMobileList 手机号列表，提醒手机号对应的群成员(@某个成员)，@all表示提醒所有人
-     * @param array|Collection $options Replace the specified options on the request
+     * @param array|Collection|null $mentionedList userid的列表，提醒群中的指定成员(@某个成员)，@all表示提醒所有人，如果开发者获取不到userid，可以使用mentioned_mobile_list
+     * @param array|Collection|null $mentionedMobileList 手机号列表，提醒手机号对应的群成员(@某个成员)，@all表示提醒所有人
+     * @param array|Collection|null $options Replace the specified options on the request
+     * @param \Closure|null $closure
      * @param string $url
      * @return bool
      */
     public function sendText(
-        string           $content = '',
-        array|Collection $mentionedList = [],
-        array|Collection $mentionedMobileList = [],
-        array|Collection $options = [],
-        string           $url = '/cgi-bin/webhook/send?key={key}'
+        string                $content = '',
+        array|Collection|null $mentionedList = [],
+        array|Collection|null $mentionedMobileList = [],
+        array|Collection|null $options = [],
+        \Closure              $closure = null,
+        string                $url = '/cgi-bin/webhook/send?key={key}'
     ): bool
     {
         $data = \collect([
             "msgtype" => "text",
             "text" => [
                 "content" => $content,
-                "mentioned_list" => \collect($this->getMentionedList())->replaceRecursive($mentionedList),
-                "mentioned_mobile_list" => \collect($this->getMentionedMobileList())->replaceRecursive($mentionedMobileList),
+                "mentioned_list" => \collect($this->getMentionedList())->replaceRecursive(\collect($mentionedList)->toArray()),
+                "mentioned_mobile_list" => \collect($this->getMentionedMobileList())->replaceRecursive(\collect($mentionedMobileList)->toArray()),
             ]
-        ])->toArray();
-        return $this->send($data, $options, $url);
+        ]);
+        return $this->send($data, $options, $closure, $url);
     }
 
     /**
      * 发送文件
      * @see https://developer.work.weixin.qq.com/document/path/91770#%E6%96%87%E4%BB%B6%E7%B1%BB%E5%9E%8B
      * @param string $mediaId 文件id，通过下文的文件上传接口获取
-     * @param array|Collection $options Replace the specified options on the request
+     * @param array|Collection|null $options Replace the specified options on the request
+     * @param \Closure|null $closure
      * @param string $url
      * @return bool
      */
     public function sendFile(
         string           $mediaId = '',
-        array|Collection $options = [],
+        array|Collection|null $options = [],
+        \Closure         $closure = null,
         string           $url = '/cgi-bin/webhook/send?key={key}'
     ): bool
     {
@@ -219,21 +228,23 @@ class Webhook
             "file" => [
                 "media_id" => $mediaId,
             ]
-        ])->toArray();
-        return $this->send($data, $options, $url);
+        ]);
+        return $this->send($data, $options, $closure, $url);
     }
 
     /**
      * 发送音频
      * @see https://developer.work.weixin.qq.com/document/path/91770#%E8%AF%AD%E9%9F%B3%E7%B1%BB%E5%9E%8B
      * @param string $mediaId 文件id，通过下文的文件上传接口获取
-     * @param array|Collection $options Replace the specified options on the request
+     * @param array|Collection|null $options Replace the specified options on the request
+     * @param \Closure|null $closure
      * @param string $url
      * @return bool
      */
     public function sendVoice(
         string           $mediaId = '',
-        array|Collection $options = [],
+        array|Collection|null $options = [],
+        \Closure         $closure = null,
         string           $url = '/cgi-bin/webhook/send?key={key}'
     ): bool
     {
@@ -242,36 +253,41 @@ class Webhook
             "voice" => [
                 "media_id" => $mediaId,
             ]
-        ])->toArray();
-        return $this->send($data, $options, $url);
+        ]);
+        return $this->send($data, $options, $closure, $url);
     }
 
     /**
      * 上传
      * @see https://developer.work.weixin.qq.com/document/path/91770#%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%8E%A5%E5%8F%A3
-     * @param array|Collection $attach Attach a file to the request.
+     * @param array|Collection|null $attach Attach a file to the request.
      * @param string $type 文件类型，分别有语音(voice)和普通文件(file)
-     * @param array|Collection $options Replace the specified options on the request
+     * @param array|Collection|null $options Replace the specified options on the request
+     * @param \Closure|null $closure
      * @param string $url
      * @return string|null
      */
     public function uploadMedia(
-        array|Collection $attach = [],
-        string           $type = 'file',
-        array|Collection $options = [],
-        string           $url = '/cgi-bin/webhook/upload_media?key={key}&type={type}'
+        array|Collection|null $attach = [],
+        string                $type = 'file',
+        array|Collection|null $options = [],
+        \Closure              $closure = null,
+        string                $url = '/cgi-bin/webhook/upload_media?key={key}&type={type}'
     ): string|null
     {
         $response = Http::baseUrl($this->getBaseUrl())
             ->asMultipart()
-            ->attach(...$attach)
-            ->withOptions($options)
+            ->attach(...\collect($attach)->toArray())
+            ->withOptions(\collect($options)->toArray())
             ->withUrlParameters(
                 [
                     'key' => $this->key,
                     'type' => $type,
                 ]
             )->post($url);
+        if ($closure) {
+            return call_user_func($closure, $response);
+        }
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {

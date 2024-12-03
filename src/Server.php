@@ -131,22 +131,24 @@ class Server
     /**
      * 获取access_token
      * @see https://developer.work.weixin.qq.com/document/path/91039
-     * @param array|Collection $options
+     * @param array|Collection|null $options
      * @param string $url
      * @return $this
      */
     public function queryAccessToken(
-        array|Collection $options = [],
-        string           $url = '/cgi-bin/gettoken'
+        array|Collection|null $options = [],
+        string                $url = '/cgi-bin/gettoken'
     ): Server
     {
-        $response = Http::baseUrl($this->getBaseUrl())->withOptions($options)->get(
-            $url,
-            [
-                'corpid' => $this->getCorpid(),
-                'corpsecret' => $this->getCorpsecret(),
-            ]
-        );
+        $response = Http::baseUrl($this->getBaseUrl())
+            ->withOptions(\collect($options)->toArray())
+            ->get(
+                $url,
+                [
+                    'corpid' => $this->getCorpid(),
+                    'corpsecret' => $this->getCorpsecret(),
+                ]
+            );
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
@@ -164,18 +166,20 @@ class Server
      * @return array|null
      */
     public function queryApiDomainIp(
-        array|Collection $options = [],
-        string           $url = '/cgi-bin/get_api_domain_ip'
+        array|Collection|null $options = [],
+        string                $url = '/cgi-bin/get_api_domain_ip'
     ): array|null
     {
-        $response = Http::baseUrl($this->getBaseUrl())->withOptions($options)->get(
-            $url,
-            [
-                'corpid' => $this->getCorpid(),
-                'corpsecret' => $this->getCorpsecret(),
-                'access_token' => $this->getAccessToken()
-            ]
-        );
+        $response = Http::baseUrl($this->getBaseUrl())
+            ->withOptions(\collect($options)->toArray())
+            ->get(
+                $url,
+                [
+                    'corpid' => $this->getCorpid(),
+                    'corpsecret' => $this->getCorpsecret(),
+                    'access_token' => $this->getAccessToken()
+                ]
+            );
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
@@ -189,7 +193,7 @@ class Server
      * 通过缓存获取access_token
      * @param string $key
      * @param \DateTimeInterface|\DateInterval|int|null $ttl
-     * @param array $queryAccessTokenFuncArgs
+     * @param array|Collection|null $queryAccessTokenFuncArgs
      * @return Server
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -197,7 +201,7 @@ class Server
     public function queryAccessTokenWithCache(
         string                                    $key = '',
         \DateTimeInterface|\DateInterval|int|null $ttl = 7100,
-        array                                     $queryAccessTokenFuncArgs = []
+        array|Collection|null                     $queryAccessTokenFuncArgs = []
     ): Server
     {
         if (\str($key)->isEmpty()) {
@@ -207,7 +211,7 @@ class Server
             $this->setAccessToken(\cache()->get($key, ''));
         }
         if (!$this->queryApiDomainIp()) {
-            $this->queryAccessToken(...$queryAccessTokenFuncArgs);
+            $this->queryAccessToken(...\collect($queryAccessTokenFuncArgs)->toArray());
             \cache()->put($key, $this->getAccessToken(), $ttl);
         }
         return $this;
@@ -222,19 +226,19 @@ class Server
      * @return bool
      */
     public function messageSend(
-        array|Collection $data = [],
-        array|Collection $options = [],
-        string           $url = '/cgi-bin/message/send?access_token={access_token}'
+        array|Collection|null $data = [],
+        array|Collection|null $options = [],
+        string                $url = '/cgi-bin/message/send?access_token={access_token}'
     ): bool
     {
         $response = Http::baseUrl($this->getBaseUrl())
             ->asJson()
-            ->withOptions($options)
+            ->withOptions(\collect($options)->toArray())
             ->withUrlParameters(
                 [
                     'access_token' => $this->getAccessToken(),
                 ]
-            )->post($url, $data);
+            )->post($url, \collect($data)->toArray());
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
@@ -254,16 +258,16 @@ class Server
      * @return string|null
      */
     public function mediaUpload(
-        array|Collection $attach = [],
-        string           $type = 'file',
-        array|Collection $options = [],
-        string           $url = '/cgi-bin/media/upload?access_token={access_token}&type={type}'
+        array|Collection|null $attach = [],
+        string                $type = 'file',
+        array|Collection|null $options = [],
+        string                $url = '/cgi-bin/media/upload?access_token={access_token}&type={type}'
     ): string|null
     {
         $response = Http::baseUrl($this->getBaseUrl())
             ->asMultipart()
-            ->attach(...$attach)
-            ->withOptions($options)
+            ->attach(...\collect($attach)->toArray())
+            ->withOptions(\collect($options)->toArray())
             ->withUrlParameters(
                 [
                     'access_token' => $this->getAccessToken(),
@@ -288,15 +292,15 @@ class Server
      * @return string|null
      */
     public function mediaUploadImg(
-        array|Collection $attach = [],
-        array|Collection $options = [],
-        string           $url = '/cgi-bin/media/uploadimg?access_token={access_token}'
+        array|Collection|null $attach = [],
+        array|Collection|null $options = [],
+        string                $url = '/cgi-bin/media/uploadimg?access_token={access_token}'
     ): string|null
     {
         $response = Http::baseUrl($this->getBaseUrl())
             ->asMultipart()
-            ->attach(...$attach)
-            ->withOptions($options)
+            ->attach(...\collect($attach)->toArray())
+            ->withOptions(\collect($options)->toArray())
             ->withUrlParameters(
                 [
                     'access_token' => $this->getAccessToken(),
