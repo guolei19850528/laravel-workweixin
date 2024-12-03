@@ -1,0 +1,33 @@
+{
+    "name": "guolei19850528/laravel-workwx",
+    "description": "laravel 企业微信类库",
+    "keywords": [
+        "企业微信",
+        "work weixin",
+        "Laravel"
+    ],
+    "autoload": {
+        "psr-4": {
+            "Guolei19850528\\Laravel\\Workwx\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "guolei",
+            "email": "174000902@qq.com"
+        }
+    ],
+    "type": "library",
+    "minimum-stability": "dev",
+    "require": {
+        "php": "8.*",
+        "illuminate/support": "7.*||8.*||9.*||10.*||11.*"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Guolei19850528\\Laravel\\Workwx\\ExtensionServiceProvider"
+            ]
+        }
+    }
+}
