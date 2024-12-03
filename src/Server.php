@@ -132,11 +132,13 @@ class Server
      * 获取access_token
      * @see https://developer.work.weixin.qq.com/document/path/91039
      * @param array|Collection|null $options
+     * @param \Closure|null $closure
      * @param string $url
      * @return $this
      */
     public function queryAccessToken(
         array|Collection|null $options = [],
+        \Closure              $closure = null,
         string                $url = '/cgi-bin/gettoken'
     ): Server
     {
@@ -149,6 +151,9 @@ class Server
                     'corpsecret' => $this->getCorpsecret(),
                 ]
             );
+        if ($closure) {
+            return call_user_func($closure, $response);
+        }
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
@@ -162,11 +167,13 @@ class Server
      * 获取企业微信接口IP段
      * @see https://developer.work.weixin.qq.com/document/path/92520
      * @param array|Collection|null $options
+     * @param \Closure|null $closure
      * @param string $url
      * @return array|null
      */
     public function queryApiDomainIp(
         array|Collection|null $options = [],
+        \Closure              $closure = null,
         string                $url = '/cgi-bin/get_api_domain_ip'
     ): array|null
     {
@@ -180,6 +187,9 @@ class Server
                     'access_token' => $this->getAccessToken()
                 ]
             );
+        if ($closure) {
+            return call_user_func($closure, $response);
+        }
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
@@ -222,12 +232,14 @@ class Server
      * @see https://developer.work.weixin.qq.com/document/path/90235
      * @param array|Collection|null $data Post Data
      * @param array|Collection|null $options Replace the specified options on the request.
+     * @param \Closure|null $closure
      * @param string $url
      * @return bool
      */
     public function messageSend(
         array|Collection|null $data = [],
         array|Collection|null $options = [],
+        \Closure              $closure = null,
         string                $url = '/cgi-bin/message/send?access_token={access_token}'
     ): bool
     {
@@ -239,6 +251,9 @@ class Server
                     'access_token' => $this->getAccessToken(),
                 ]
             )->post($url, \collect($data)->toArray());
+        if ($closure) {
+            return call_user_func($closure, $response);
+        }
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
@@ -254,6 +269,7 @@ class Server
      * @param array|Collection|null $attach Attach a file to the request.
      * @param string $type 媒体文件类型，分别有图片（image）、语音（voice）、视频（video），普通文件（file）
      * @param array|Collection|null $options Replace the specified options on the request.
+     * @param \Closure|null $closure
      * @param string $url
      * @return string|null
      */
@@ -261,6 +277,7 @@ class Server
         array|Collection|null $attach = [],
         string                $type = 'file',
         array|Collection|null $options = [],
+        \Closure              $closure = null,
         string                $url = '/cgi-bin/media/upload?access_token={access_token}&type={type}'
     ): string|null
     {
@@ -274,6 +291,9 @@ class Server
                     'type' => $type,
                 ]
             )->post($url);
+        if ($closure) {
+            return call_user_func($closure, $response);
+        }
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
@@ -288,12 +308,14 @@ class Server
      * @see https://developer.work.weixin.qq.com/document/path/90256
      * @param array|Collection|null $attach Attach a file to the request.
      * @param array|Collection|null $options Replace the specified options on the request.
+     * @param \Closure|null $closure
      * @param string $url
      * @return string|null
      */
     public function mediaUploadImg(
         array|Collection|null $attach = [],
         array|Collection|null $options = [],
+        \Closure              $closure = null,
         string                $url = '/cgi-bin/media/uploadimg?access_token={access_token}'
     ): string|null
     {
@@ -306,6 +328,9 @@ class Server
                     'access_token' => $this->getAccessToken(),
                 ]
             )->post($url);
+        if ($closure) {
+            return call_user_func($closure, $response);
+        }
         if ($response->ok()) {
             $json = $response->json();
             if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
