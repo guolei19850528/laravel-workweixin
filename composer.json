@@ -1,6 +1,8 @@
 {
     "name": "guolei19850528/laravel-workwx",
-    "description": "laravel 企业微信类库",
+    "description": "A Work Weixin Laravel Library By Guolei",
+    "type": "library",
+    "license": "MIT",
     "keywords": [
         "企业微信",
         "work weixin",
