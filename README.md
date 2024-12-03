@@ -48,4 +48,7 @@ $state=$server->messageSend([
         'content'=>'test message'
     ]
 ]);
+if($state){
+    print_r('successful');
+}
 ```
