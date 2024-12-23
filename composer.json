@@ -1,12 +1,14 @@
 {
     "name": "guolei19850528/laravel-workwx",
-    "description": "A Work Weixin Laravel Library By Guolei",
+    "description": "A Work Weixin Laravel Library Developed By Guolei",
     "type": "library",
     "license": "MIT",
     "keywords": [
         "企业微信",
         "work weixin",
-        "Laravel"
+        "Laravel",
+        "郭磊",
+        "guolei"
     ],
     "autoload": {
         "psr-4": {

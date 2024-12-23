@@ -1,6 +1,6 @@
 # laravel-workweixin
 
-A Work Weixin Laravel Library By Guolei
+A Work Weixin Laravel Library Developed By Guolei
 
 # Installation
 
