@@ -139,10 +139,10 @@ class Server
      * @return $this
      */
     public function token(
-        array|Collection|null $options = [],
         array|Collection|null $query = [],
         string                $url = '/cgi-bin/gettoken',
         array|Collection|null $urlParameters = null,
+        array|Collection|null $options = [],
         \Closure|null         $responseHandler = null
 
     ): Server
@@ -182,10 +182,10 @@ class Server
      * @return array|null
      */
     public function getApiDomainIp(
-        array|Collection|null $options = [],
         array|Collection|null $query = [],
         string                $url = '/cgi-bin/get_api_domain_ip',
         array|Collection|null $urlParameters = null,
+        array|Collection|null $options = [],
         \Closure|null         $responseHandler = null
     ): array|null
     {
@@ -254,9 +254,9 @@ class Server
      */
     public function messageSend(
         array|Collection|null $data = [],
-        array|Collection|null $options = [],
         string                $url = '/cgi-bin/message/send?access_token={access_token}',
         array|Collection|null $urlParameters = null,
+        array|Collection|null $options = [],
         \Closure|null         $responseHandler = null
     ): bool
     {
