@@ -56,7 +56,7 @@ $server=new Server(
             'your corpsecret',
             'your agentid'
         );
-$state=$server->getTokenWithCache()->messageSend([
+$state=$server->tokenWithCache()->messageSend([
     'touser'=>'',
     'msgtype'=>'text',
     'agentid'=>$server->getAgentid(),

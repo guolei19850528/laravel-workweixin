@@ -138,7 +138,7 @@ class Server
      * @param \Closure|null $responseHandler
      * @return $this
      */
-    public function getToken(
+    public function token(
         array|Collection|null $options = [],
         array|Collection|null $query = [],
         string                $url = '/cgi-bin/gettoken',
@@ -223,20 +223,20 @@ class Server
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function getTokenWithCache(
+    public function tokenWithCache(
         string                                    $key = '',
         \DateTimeInterface|\DateInterval|int|null $ttl = 7100,
-        array|Collection|null                     $getTokenFuncArgs = []
+        array|Collection|null                     $tokenFuncArgs = []
     ): Server
     {
         if (\str($key)->isEmpty()) {
-            $key = \str('laravel_workwx')->append('_', 'server_access_token', '_', $this->getAgentid())->toString();
+            $key = \str('laravel_workwx_server')->append('_access_token_', $this->getAgentid())->toString();
         }
         if (\cache()->has($key)) {
             $this->setAccessToken(\cache()->get($key, ''));
         }
         if (!$this->getApiDomainIp()) {
-            $this->getToken(...\collect($getTokenFuncArgs)->toArray());
+            $this->token(...\collect($tokenFuncArgs)->toArray());
             \cache()->put($key, $this->getAccessToken(), $ttl);
         }
         return $this;
