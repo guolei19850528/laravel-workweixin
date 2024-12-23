@@ -141,13 +141,13 @@ class Webhook
         string|null           $url = '/cgi-bin/webhook/send?key={key}',
         array|Collection|null $urlParameters = null,
         array|Collection|null $options = null,
-        \Closure              $responseHandler = null
+        \Closure|null         $responseHandler = null
     ): mixed
     {
         $data = \collect($data);
         $urlParameters = \collect($urlParameters);
         $options = \collect($options);
-        \data_set($urlParameters, 'key', $this->key);
+        \data_fill($urlParameters, 'key', $this->key);
         $response = Http::baseUrl($this->getBaseUrl())->asJson()->withOptions($options->toArray())->withUrlParameters($urlParameters->toArray())->post($url, $data->toArray());
         if ($responseHandler instanceof \Closure) {
             return value($responseHandler($response));
@@ -260,13 +260,12 @@ class Webhook
         string $mediaId = '',
     ): Collection
     {
-        $data = \collect([
+        return \collect([
             'msgtype' => 'file',
             'file' => [
                 'media_id' => $mediaId,
             ]
         ]);
-        return $data;
     }
 
     /**
@@ -278,13 +277,12 @@ class Webhook
         string $mediaId = '',
     ): Collection
     {
-        $data = \collect([
+        return \collect([
             'msgtype' => 'voice',
             'voice' => [
                 'media_id' => $mediaId,
             ]
         ]);
-        return $data;
     }
 
     /**
@@ -297,24 +295,31 @@ class Webhook
      * @param \Closure|null $responseHandler
      * @return mixed
      */
-    public function updateMedia(
+    public function uploadMedia(
         array|Collection|null $attach = null,
+        array|Collection|null $data = null,
         string|null           $url = '/cgi-bin/webhook/upload_media?key={key}&type={type}',
         string                $type = 'file',
         array|Collection|null $urlParameters = null,
         array|Collection|null $options = null,
-        \Closure              $responseHandler = null
+        \Closure|null         $responseHandler = null
     ): mixed
     {
         $type = !in_array(strtolower($type), ['file', 'voice']) ? $type : 'file';
         $attach = \collect($attach);
+        $data = \collect($data);
         $urlParameters = \collect($urlParameters);
         $options = \collect($options);
-        \data_set($urlParameters, 'key', $this->key);
-        \data_set($urlParameters, 'type', $type);
-        $response = Http::baseUrl($this->getBaseUrl())->asMultipart()->attach(...$attach->toArray())->withOptions($options->toArray())->withUrlParameters($urlParameters->toArray())->post($url);
+        \data_fill($urlParameters, 'key', $this->key);
+        \data_fill($urlParameters, 'type', $type);
+        $response = Http::baseUrl($this->getBaseUrl())
+            ->asMultipart()
+            ->attach(...$attach->toArray())
+            ->withOptions($options->toArray())
+            ->withUrlParameters($urlParameters->toArray())
+            ->post($url, $data->toArray());
         if ($responseHandler instanceof \Closure) {
-            return value($responseHandler($response));
+            return \value($responseHandler($response));
         }
         if ($response->ok()) {
             $json = $response->json();

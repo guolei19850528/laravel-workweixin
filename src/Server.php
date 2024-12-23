@@ -132,27 +132,35 @@ class Server
      * 获取access_token
      * @see https://developer.work.weixin.qq.com/document/path/91039
      * @param array|Collection|null $options
-     * @param \Closure|null $closure
+     * @param array|Collection|null $query
      * @param string $url
+     * @param array|Collection|null $urlParameters
+     * @param \Closure|null $responseHandler
      * @return $this
      */
-    public function queryAccessToken(
+    public function getToken(
         array|Collection|null $options = [],
-        \Closure              $closure = null,
-        string                $url = '/cgi-bin/gettoken'
+        array|Collection|null $query = [],
+        string                $url = '/cgi-bin/gettoken',
+        array|Collection|null $urlParameters = null,
+        \Closure|null         $responseHandler = null
+
     ): Server
     {
+        $query = \collect($query);
+        $options = \collect($options);
+        $urlParameters = \collect($urlParameters);
+        \data_fill($query, 'corpid', $this->getCorpid());
+        \data_fill($query, 'corpsecret', $this->getCorpsecret());
         $response = Http::baseUrl($this->getBaseUrl())
-            ->withOptions(\collect($options)->toArray())
+            ->withOptions($options->toArray())
+            ->withUrlParameters($urlParameters->toArray())
             ->get(
                 $url,
-                [
-                    'corpid' => $this->getCorpid(),
-                    'corpsecret' => $this->getCorpsecret(),
-                ]
+                $query->toArray(),
             );
-        if ($closure) {
-            return call_user_func($closure, $response);
+        if ($responseHandler) {
+            return value($responseHandler($response));
         }
         if ($response->ok()) {
             $json = $response->json();
@@ -167,28 +175,35 @@ class Server
      * 获取企业微信接口IP段
      * @see https://developer.work.weixin.qq.com/document/path/92520
      * @param array|Collection|null $options
-     * @param \Closure|null $closure
+     * @param array|Collection|null $query
      * @param string $url
+     * @param array|Collection|null $urlParameters
+     * @param \Closure|null $responseHandler
      * @return array|null
      */
-    public function queryApiDomainIp(
+    public function getApiDomainIp(
         array|Collection|null $options = [],
-        \Closure              $closure = null,
-        string                $url = '/cgi-bin/get_api_domain_ip'
+        array|Collection|null $query = [],
+        string                $url = '/cgi-bin/get_api_domain_ip',
+        array|Collection|null $urlParameters = null,
+        \Closure|null         $responseHandler = null
     ): array|null
     {
+        $query = \collect($query);
+        $options = \collect($options);
+        $urlParameters = \collect($urlParameters);
+        \data_fill($query, 'corpid', $this->getCorpid());
+        \data_fill($query, 'corpsecret', $this->getCorpsecret());
+        \data_fill($query, 'access_token', $this->getAccessToken());
         $response = Http::baseUrl($this->getBaseUrl())
-            ->withOptions(\collect($options)->toArray())
+            ->withOptions($options->toArray())
+            ->withUrlParameters($urlParameters->toArray())
             ->get(
                 $url,
-                [
-                    'corpid' => $this->getCorpid(),
-                    'corpsecret' => $this->getCorpsecret(),
-                    'access_token' => $this->getAccessToken()
-                ]
+                $query->toArray(),
             );
-        if ($closure) {
-            return call_user_func($closure, $response);
+        if ($responseHandler) {
+            return value($responseHandler($response));
         }
         if ($response->ok()) {
             $json = $response->json();
@@ -203,15 +218,15 @@ class Server
      * 通过缓存获取access_token
      * @param string $key
      * @param \DateTimeInterface|\DateInterval|int|null $ttl
-     * @param array|Collection|null $queryAccessTokenFuncArgs
+     * @param array|Collection|null $getTokenFuncArgs
      * @return Server
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function queryAccessTokenWithCache(
+    public function getTokenWithCache(
         string                                    $key = '',
         \DateTimeInterface|\DateInterval|int|null $ttl = 7100,
-        array|Collection|null                     $queryAccessTokenFuncArgs = []
+        array|Collection|null                     $getTokenFuncArgs = []
     ): Server
     {
         if (\str($key)->isEmpty()) {
@@ -220,8 +235,8 @@ class Server
         if (\cache()->has($key)) {
             $this->setAccessToken(\cache()->get($key, ''));
         }
-        if (!$this->queryApiDomainIp()) {
-            $this->queryAccessToken(...\collect($queryAccessTokenFuncArgs)->toArray());
+        if (!$this->getApiDomainIp()) {
+            $this->getToken(...\collect($getTokenFuncArgs)->toArray());
             \cache()->put($key, $this->getAccessToken(), $ttl);
         }
         return $this;
@@ -232,27 +247,29 @@ class Server
      * @see https://developer.work.weixin.qq.com/document/path/90235
      * @param array|Collection|null $data Post Data
      * @param array|Collection|null $options Replace the specified options on the request.
-     * @param \Closure|null $closure
      * @param string $url
+     * @param array|Collection|null $urlParameters
+     * @param \Closure|null $responseHandler
      * @return bool
      */
     public function messageSend(
         array|Collection|null $data = [],
         array|Collection|null $options = [],
-        \Closure              $closure = null,
-        string                $url = '/cgi-bin/message/send?access_token={access_token}'
+        string                $url = '/cgi-bin/message/send?access_token={access_token}',
+        array|Collection|null $urlParameters = null,
+        \Closure|null         $responseHandler = null
     ): bool
     {
+        $urlParameters = \collect($urlParameters);
+        \data_fill($urlParameters, 'access_token', $this->getAccessToken());
         $response = Http::baseUrl($this->getBaseUrl())
             ->asJson()
             ->withOptions(\collect($options)->toArray())
             ->withUrlParameters(
-                [
-                    'access_token' => $this->getAccessToken(),
-                ]
+                $urlParameters->toArray()
             )->post($url, \collect($data)->toArray());
-        if ($closure) {
-            return call_user_func($closure, $response);
+        if ($responseHandler) {
+            return value($responseHandler($response));
         }
         if ($response->ok()) {
             $json = $response->json();
@@ -267,32 +284,40 @@ class Server
      * 上传临时素材
      * @see https://developer.work.weixin.qq.com/document/path/90253
      * @param array|Collection|null $attach Attach a file to the request.
+     * @param array|Collection|null $data
      * @param string $type 媒体文件类型，分别有图片（image）、语音（voice）、视频（video），普通文件（file）
-     * @param array|Collection|null $options Replace the specified options on the request.
-     * @param \Closure|null $closure
      * @param string $url
+     * @param array|Collection|null $urlParameters
+     * @param array|Collection|null $options Replace the specified options on the request.
+     * @param \Closure|null $responseHandler
      * @return string|null
      */
     public function mediaUpload(
         array|Collection|null $attach = [],
+        array|Collection|null $data = [],
         string                $type = 'file',
+        string                $url = '/cgi-bin/media/upload?access_token={access_token}&type={type}',
+        array|Collection|null $urlParameters = null,
         array|Collection|null $options = [],
-        \Closure              $closure = null,
-        string                $url = '/cgi-bin/media/upload?access_token={access_token}&type={type}'
+        \Closure|null         $responseHandler = null
+
     ): string|null
     {
+        $type = !in_array(strtolower($type), ['file', 'voice', 'image', 'video']) ? $type : 'file';
+        $attach = \collect($attach);
+        $data = \collect($data);
+        $urlParameters = \collect($urlParameters);
+        \data_fill($urlParameters, 'type', $type);
+        \data_fill($urlParameters, 'access_token', $this->getAccessToken());
         $response = Http::baseUrl($this->getBaseUrl())
             ->asMultipart()
-            ->attach(...\collect($attach)->toArray())
-            ->withOptions(\collect($options)->toArray())
+            ->attach(...$attach->toArray())
+            ->withOptions($options->toArray())
             ->withUrlParameters(
-                [
-                    'access_token' => $this->getAccessToken(),
-                    'type' => $type,
-                ]
-            )->post($url);
-        if ($closure) {
-            return call_user_func($closure, $response);
+                $urlParameters
+            )->post($url, $data->toArray());
+        if ($responseHandler) {
+            return value($responseHandler($response));
         }
         if ($response->ok()) {
             $json = $response->json();
@@ -307,29 +332,35 @@ class Server
      * 上传图片
      * @see https://developer.work.weixin.qq.com/document/path/90256
      * @param array|Collection|null $attach Attach a file to the request.
-     * @param array|Collection|null $options Replace the specified options on the request.
-     * @param \Closure|null $closure
+     * @param array|Collection|null $data
      * @param string $url
+     * @param array|Collection|null $urlParameters
+     * @param array|Collection|null $options Replace the specified options on the request.
+     * @param \Closure|null $responseHandler
      * @return string|null
      */
     public function mediaUploadImg(
         array|Collection|null $attach = [],
+        array|Collection|null $data = [],
+        string                $url = '/cgi-bin/media/uploadimg?access_token={access_token}',
+        array|Collection|null $urlParameters = null,
         array|Collection|null $options = [],
-        \Closure              $closure = null,
-        string                $url = '/cgi-bin/media/uploadimg?access_token={access_token}'
+        \Closure|null         $responseHandler = null
     ): string|null
     {
+        $attach = \collect($attach);
+        $data = \collect($data);
+        $urlParameters = \collect($urlParameters);
+        \data_fill($urlParameters, 'access_token', $this->getAccessToken());
         $response = Http::baseUrl($this->getBaseUrl())
             ->asMultipart()
-            ->attach(...\collect($attach)->toArray())
-            ->withOptions(\collect($options)->toArray())
+            ->attach(...$attach->toArray())
+            ->withOptions($options->toArray())
             ->withUrlParameters(
-                [
-                    'access_token' => $this->getAccessToken(),
-                ]
-            )->post($url);
-        if ($closure) {
-            return call_user_func($closure, $response);
+                $urlParameters
+            )->post($url, $data->toArray());
+        if ($responseHandler) {
+            return value($responseHandler($response));
         }
         if ($response->ok()) {
             $json = $response->json();

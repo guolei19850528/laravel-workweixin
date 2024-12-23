@@ -15,9 +15,18 @@ composer require guolei19850528/laravel-workwx
 ```php
 use Guolei19850528\Laravel\Workwx\Webhook;
 
-$webhook = new Webhook('your key',['name'],['mobile']);
+$webhook = new Webhook('key','base url',['mentioned list'],['mentioned mobile list']);
 
-$state=$webhook->sendText('your content',['name'],['mobile']);
+$state=$webhook->send(
+    $webhook->sendTextFormatter(
+        'test message'
+    )
+);
+if ($state){
+    print_r('success');
+}else{
+    print_r('failed');
+}
 
 $mediaId = $webhook->uploadMedia(
             [
@@ -29,10 +38,17 @@ $mediaId = $webhook->uploadMedia(
         );
 
 if (\str($mediaId)->isNotEmpty()) {
-    $state=$webhook->sendFile($mediaId);
+    $state=$webhook->send($webhook->sendFileFormatter($mediaId));
+    if ($state){
+        print_r('success');
+    }else{
+        print_r('failed');
+    }
 }
 ```
+
 ## Server
+
 ```php
 use Guolei19850528\Laravel\Workwx\Server;
 $server=new Server(
@@ -40,7 +56,7 @@ $server=new Server(
             'your corpsecret',
             'your agentid'
         );
-$state=$server->messageSend([
+$state=$server->getTokenWithCache()->messageSend([
     'touser'=>'',
     'msgtype'=>'text',
     'agentid'=>$server->getAgentid(),
