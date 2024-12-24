@@ -10,6 +10,7 @@
  * laravel-workwx config file
  */
 return [
+    //群机器人 Webhook 配置
     'webhook' => [
         'your key' => [
             'baseUrl' => '',
@@ -18,6 +19,7 @@ return [
             'mentionedMobileList' => [],
         ],
     ],
+    //Server Api 配置
     'server' => [
         'your key' => [
             'baseUrl' => 'https://qyapi.weixin.qq.com/cgi-bin/',
