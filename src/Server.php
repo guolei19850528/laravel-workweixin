@@ -383,6 +383,13 @@ class Server
         \Closure|null         $responseHandler = null
     ): mixed
     {
+        if (!\str($url)->startsWith('/artemis')) {
+            if (!\str($url)->startsWith('/')) {
+                $url = \str('/artemis')->append('/')->append($url)->toString();
+            } else {
+                $url = \str('/artemis')->append($url)->toString();
+            }
+        }
         $method = \str($method)->isEmpty() ? 'GET' : $method;
         $data = \collect($data);
         $query = \collect($query);
