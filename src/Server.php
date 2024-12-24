@@ -8,6 +8,7 @@
 
 namespace Guolei19850528\Laravel\Workwx;
 
+use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
@@ -369,5 +370,42 @@ class Server
             }
         }
         return null;
+    }
+
+    public function requestWithToken(
+        string|null           $method = 'GET',
+        string|null           $url = '',
+        array|Collection|null $urlParameters = [],
+        array|Collection|null $data = [],
+        array|Collection|null $query = [],
+        array|Collection|null $headers = [],
+        array|Collection|null $options = [],
+        \Closure|null         $responseHandler = null
+    ): mixed
+    {
+        $method = \str($method)->isEmpty() ? 'GET' : $method;
+        $data = \collect($data);
+        $query = \collect($query);
+        $headers = \collect($headers);
+        $urlParameters = \collect($urlParameters);
+        $options = \collect($options);
+        \data_fill($urlParameters, 'access_token', $this->getAccessToken());
+        \data_fill($query, 'access_token', $this->getAccessToken());
+        \data_fill($options, RequestOptions::QUERY, $query->toArray());
+        \data_fill($options, RequestOptions::FORM_PARAMS, $data->toArray());
+        $response = Http::baseUrl($this->getBaseUrl())
+            ->withHeaders($this->headers($method, $url, $headers->toArray()))
+            ->withUrlParameters($urlParameters->toArray())
+            ->send($method, $url, $options->toArray());
+        if ($responseHandler instanceof \Closure) {
+            return \value($responseHandler($response));
+        }
+        if ($response->ok()) {
+            $json = $response->json();
+            if (Validator::make($json, ['errcode' => 'required|integer|size:0'])->messages()->isEmpty()) {
+                return \collect($json);
+            }
+        }
+        return \collect();
     }
 }
